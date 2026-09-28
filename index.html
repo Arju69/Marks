@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lab Marks Register</title>
+<meta name="theme-color" content="#1F5C4A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Marks">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F0; --surface:#FFFFFF; --ink:#16231F; --muted:#5B6B66; --line:#D3DBD8;
+  --accent:#1F5C4A; --accent-ink:#FFFFFF; --soft:#DCEBE5; --absent:#B42318; --absent-soft:#FBE4E1; --bad:#B54708;
+  --ui:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1715; --surface:#16211E; --ink:#E4ECE9; --muted:#93A39E; --line:#2A3833;
+    --accent:#6FC2A4; --accent-ink:#0F1715; --soft:#1C3029; --absent:#F97066; --absent-soft:#3A1E1B; --bad:#FDB022;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1715; --surface:#16211E; --ink:#E4ECE9; --muted:#93A39E; --line:#2A3833;
+  --accent:#6FC2A4; --accent-ink:#0F1715; --soft:#1C3029; --absent:#F97066; --absent-soft:#3A1E1B; --bad:#FDB022;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 140px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--ui);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 48px}
+h1,h2{font-family:var(--serif);font-weight:700;margin:0;letter-spacing:-.01em}
+h1{font-size:1.75rem;line-height:1.15}
+h2{font-size:1.2rem}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.top .wrap{padding-top:14px;padding-bottom:12px}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bar .grow{flex:1;min-width:0}
+.sync{font-size:.8rem;color:var(--muted);white-space:nowrap}
+.sync[data-s="error"]{color:var(--absent)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;min-height:40px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.btn.danger{color:var(--absent)}
+.btn.danger.armed{background:var(--absent);color:#fff;border-color:var(--absent)}
+.btn.ghost{background:transparent;border-color:transparent;padding-left:6px;padding-right:6px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:8px 12px;min-height:38px}
+.clsseg{display:flex}
+.clsseg button{flex:1}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:10px}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.sesstitle{font-family:var(--serif);font-weight:700;font-size:1.3rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* forms */
+label.f{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+label.f input,label.f select,.search{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;min-height:44px;font-size:1rem;color:var(--ink);width:100%}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:18px}
+.formgrid{display:grid;grid-template-columns:1fr 2fr 1fr;gap:12px;margin:14px 0}
+@media (max-width:560px){.formgrid{grid-template-columns:1fr 1fr}.formgrid .wide{grid-column:1/-1;order:-1}}
+
+/* home list */
+.day{margin-top:22px}
+.day h3{font-size:.9rem;color:var(--muted);font-weight:700;margin:0 0 8px}
+.sess{display:grid;grid-template-columns:1fr auto;gap:4px 12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:8px}
+.sess:hover{border-color:var(--accent)}
+.sess b{font-size:1.05rem}
+.sess .meta{grid-column:1/-1;font-size:.85rem;color:var(--muted)}
+.sess .progress{grid-column:1/-1;margin-top:4px}
+.empty{padding:28px 18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px;margin-top:10px}
+
+/* marking list */
+.tools{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.tools .search{flex:1;min-width:160px;min-height:40px;padding:8px 12px}
+.tools select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 10px;min-height:40px}
+.rows{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.row{display:grid;grid-template-columns:2.2rem 1fr auto 5.2rem;align-items:center;gap:10px;padding:8px 12px 8px 0;border-top:1px solid var(--line);border-left:5px solid transparent}
+.row.haslab{grid-template-columns:2.2rem 1fr auto auto 5.2rem}
+.row:first-child{border-top:0}
+.row[data-state="done"]{border-left-color:var(--accent)}
+.row[data-state="absent"]{border-left-color:var(--absent);background:var(--absent-soft)}
+.row .n{text-align:right;color:var(--muted);font-size:.85rem}
+.row .who{min-width:0}
+.row .nm{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .rl{display:block;font-size:.8rem;color:var(--muted)}
+.abs{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:transparent;font-weight:700;color:var(--muted)}
+.abs[aria-pressed="true"]{background:var(--absent);border-color:var(--absent);color:#fff}
+.mk{width:100%;height:46px;text-align:center;font-size:1.3rem;font-weight:700;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums}
+.mk:focus{border-color:var(--accent);background:var(--surface);outline:none;box-shadow:0 0 0 3px var(--soft)}
+.row[data-state="absent"] .mk{color:var(--absent)}
+.row.bad .mk{border-color:var(--bad);color:var(--bad)}
+.lab{height:40px;min-width:54px;padding:0 10px;border-radius:20px;border:1px solid var(--line);background:transparent;font-weight:700;font-size:.85rem;color:var(--muted);white-space:nowrap}
+.lab[aria-pressed="true"]{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+.labbig{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:360px;margin:14px auto 0;min-height:52px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);font-size:1.05rem;font-weight:700;color:var(--muted)}
+.labbig[aria-pressed="true"]{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+.labbig .box{width:24px;height:24px;border-radius:6px;border:2px solid currentColor;display:inline-grid;place-items:center;font-size:1rem;line-height:1}
+.check{display:flex;align-items:center;gap:10px;font-size:.95rem;margin:4px 0 14px;cursor:pointer}
+.check input{width:22px;height:22px;accent-color:var(--accent)}
+.stats{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:14px;color:var(--muted);font-size:.9rem}
+.stats b{color:var(--ink)}
+.hint{font-size:.85rem;color:var(--muted);margin-top:8px}
+
+/* one-by-one */
+.one{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 18px;text-align:center}
+.one .pos{color:var(--muted);font-size:.9rem}
+.one .bn{font-family:var(--serif);font-size:clamp(1.6rem,6vw,2.3rem);font-weight:700;line-height:1.15;margin:6px 0 4px}
+.one .cur{font-size:3.2rem;font-weight:700;line-height:1;margin:16px 0 4px;font-variant-numeric:tabular-nums;min-height:3.2rem}
+.one .cur.absent{color:var(--absent)}
+.one .cur.typing{color:var(--accent)}
+.one .cur small{font-size:1.2rem;color:var(--muted);font-weight:400}
+.pad{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:8px;margin:18px 0 10px}
+.pad button{height:58px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums}
+.pad button:hover{border-color:var(--accent)}
+.pad button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pad.keys{grid-template-columns:repeat(3,1fr);max-width:320px;margin-left:auto;margin-right:auto}
+.onenav{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.onenav .btn{min-height:48px}
+.dots{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:18px}
+.dots button{width:20px;height:20px;border-radius:5px;border:1px solid var(--line);background:var(--bg);padding:0}
+.dots button[data-state="done"]{background:var(--accent);border-color:var(--accent)}
+.dots button[data-state="absent"]{background:var(--absent);border-color:var(--absent)}
+.dots button.at{outline:2px solid var(--ink);outline-offset:1px}
+
+/* edit panel */
+.edit{display:none}
+.edit.open{display:block}
+
+/* summary */
+.tablebox{overflow-x:auto;margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;font-size:.9rem;min-width:100%}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+th{font-weight:700;background:var(--bg);position:sticky;top:0}
+td .lf{font-size:.75rem;color:var(--accent);margin-left:3px}
+td .lf.no{color:var(--absent)}
+th small{display:block;font-weight:400;color:var(--muted)}
+td.l,th.l{text-align:left}
+td.a{color:var(--absent);font-weight:700}
+td.t{font-weight:700}
+.sumfilters{display:grid;grid-template-columns:1fr 1fr 2fr;gap:10px;margin-top:14px}
+@media (max-width:560px){.sumfilters{grid-template-columns:1fr 1fr}.sumfilters .wide{grid-column:1/-1}}
+
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:90vw;font-size:.95rem;z-index:20}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.loading{padding:60px 0;text-align:center;color:var(--muted)}
+@media (max-width:480px){
+  .row{grid-template-columns:1.8rem 1fr auto 4.6rem;gap:8px}
+  .row.haslab{grid-template-columns:1.6rem 1fr auto auto 4.2rem;gap:6px}
+  .lab{min-width:46px;padding:0 8px}
+  .onenav{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap" id="head"></div></header>
+<main class="wrap" id="app"><div class="loading">Opening your register…</div></main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const RAW_DBMS = `ABHIJIT GHOSH|2410046|120308244001
+ABHISHEK ROY|2410016|120308244002
+ABHISHEK SINGHA|2410028|120308244003
+AKASH MITRA|2410004|120308244004
+ANKIT KUMAR MAHATO|2410027|120308244006
+ANTARA CHATTERJEE|2410033|120308244007
+ARADHYA RAJ|2410067|120308244008
+ARNAB GHOSH|2410037|120308244009
+ASHISH RAJ|2410065|120308244010
+AVINASHEE DEV|2410055|120308244011
+BIDISHA GARAI|2410029|120308244013
+BISHAL MAJUMDAR|2410066|120308244014
+BISHESH GHOSH|2410003|120308244015
+BISWARUP JANA|2410061|120308244016
+DINKAR RAJ|2410013|120308244017
+DISHA MASANTA|2410052|120308244018
+HIMADRISHANKAR LAYEK|2410006|120308244019
+KAUSTAV CHATTERJEE|2410035|120308244020
+KOUSHAL KUMAR|2410041|120308244021
+KUMARI RIDHIMA|2410022|120308244022
+MANISH KUMAR|2410047|120308244023
+MEGHNA CHATTERJEE|2410017|120308244024
+MOULY SIKDAR|2410043|120308244025
+MRITYUNJOY KAPAT|2410024|120308244026
+NISHAN KONAR|2410010|120308244027
+PANKAJ KUMAR MISHRA|2410039|120308244028
+PAYAL SINGHANIYA|2410053|120308244029
+RUPSHAA PAL|2410011|120308244031
+SANDIP PAUL|2410049|120308244032
+SANIYA SHRUTI|2410025|120308244033
+SANJANA PARAMANIK|2410012|120308244034
+SANKHA GHOSH|2410021|120308244035
+SAPNA KUMARI|2410058|120308244036
+SARNENDU DAS|2410026|120308244037
+SATHI KHANRA|2410062|120308244038
+SATYAM KUMAR|2410050|120308244039
+SAYAN GOSWAMI|2410009|120308244040
+SAYANTAN MUKHERJEE|2410040|120308244041
+SHASWATA GHOSH|2410023|120308244043
+SHINJAN DAS|2410032|120308244044
+SHOURYA RAJ|2410054|120308244045
+SHRIYANS KUMAR MOHANTA|2410042|120308244046
+SHUBHAM MISHRA|2410008|120308244047
+SNEHA BISWAS|2410036|120308244048
+SOHAM BISWAS|2410051|120308244049
+SOUMYAJIT PANDA|2410007|120308244050
+SRISHTI KUMARI|2410031|120308244051
+SUBHOJIT PATRA|2410030|120308244052
+SUDIPTA SEN|2410019|120308244053
+SUMAN DAS|2410063|120308244054
+SUMANA PAUL|2410048|120308244055
+SUPROTIM DE SARKAR|2410020|120308244057
+SURYADIP DAS|2410005|120308244058
+SWATARUPA SARKAR|2410018|120308244059
+TANISHKA ROY|2410015|120308244060
+MOHAMMAD DANISH|2410044|120308244061
+RISHITA GOSWAMI(LE)|2410154|120308253001
+SUBHENDU GHOSH|2410153|120308253002
+DEBANJAN MAJI(LE)|2410152|120308253003`;
+
+function titleCase(s){
+  return s.replace(/\(/g,' (').replace(/\s+/g,' ').trim().split(' ')
+    .map(w => w.startsWith('(') ? w.toUpperCase() : w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
+}
+const RAW_WASL = `AARIF AHMAD|2438039|120317244001
+ABHINAV KUMAR|2438041|120317244002
+AGNISIKHA PANDEY|2438035|120317244005
+AKSHAT SHARMA|2438046|120317244006
+ANIKET GHOSH|2438014|120317244007
+ANKITA BANERJEE|2438013|120317244008
+ANKITA LAHA|2438024|120317244009
+ANUVAB MAJHI|2438045|120317244010
+ARGHYA ROY|2438011|120317244011
+ARIN DAS|2438016|120317244012
+ARKA BOSE|2438037|120317244013
+ARNAB BHATTACHARYYA|2438010|120317244014
+ARPIT KUMAR|2438027|120317244015
+AYUSH KHAN|2438008|120317244017
+BAISHALI SIKDAR|2438042|120317244018
+BIPASHA MISHRA|2438030|120317244019
+DEBASISH MONDAL|2438002|120317244020
+HRIDDHIMAN BHATTACHARYYA|2438036|120317244021
+IMAN CHATTERJEE|2438034|120317244022
+JOYA RAKHIT|2438050|120317244023
+JOYJEET CHOWDHURY|2438007|120317244024
+KOUSHIK KHAN|2438061|120317244025
+KSHITIJ SHAHABADI|2438047|120317244026
+MD FAIZ AHMAD|2438038|120317244027
+MONALISA RAHA|2438031|120317244028
+NIKITA KUMARI|2438021|120317244029
+PRAYANSHU SETH|2438051|120317244030
+PRITHWISH BANERJEE|2438032|120317244031
+PRITI MAJI|2438063|120317244032
+RIMPA SAHA|2438062|120317244034
+SAMPURNA DAS|2438029|120317244035
+SANCHITA SAHA|2438018|120317244036
+SANDIP PAL|2438025|120317244037
+SARTHAK DE|2438048|120317244038
+SAYAN DUTTA|2438023|120317244039
+SAYANTAN JANA|2438040|120317244040
+SHAILJA KUMARI|2438022|120317244041
+SOUMYADIP KHAN|2438009|120317244042
+SOURODIP PAL|2438049|120317244043
+SRIRUPA MAHATA|2438033|120317244044
+SUKRIT ROY CHOWDHURY|2438004|120317244045
+SUMIT RAJ|2438026|120317244046
+TAMAL MUKHERJEE|2438020|120317244047
+TANISHA BRAHMA|2438015|120317244048
+SUBRATA MONDAL(LE)|2438157|120317253001
+ARNAB CHOWDHURY(LE)|2438154|120317253002
+DEBABRATA GHOSH(LE)|2438155|120317253003
+KIRAN MONDAL(LE)|2438158|120317253004
+SINTU MONDAL(LE)|2438156|120317253005
+SUBHA GOPE MANDAL(LE)|2438152|120317253006
+SUDEEP MONDAL(LE)|2438153|120317253007`;
+const parseList = raw => raw.trim().split('\n').map((l,i)=>{const [n,c,e]=l.split('|');return {i,name:titleCase(n),roll:c.trim(),exam:e.trim()}});
+const CLASSES = {
+  dbms:{name:'DBMS Lab', short:'DBMS', list:parseList(RAW_DBMS)},
+  wasl:{name:'Web Application Security Lab', short:'Web App Security', list:parseList(RAW_WASL)}
+};
+let STUDENTS = CLASSES.dbms.list;
+const clsOf = s => (s && CLASSES[s.cls]) ? s.cls : 'dbms';
+function useClass(c){ if(!CLASSES[c]) c='dbms'; st.cls=c; STUDENTS=CLASSES[c].list; }
+const LOCAL_KEY = 'marks-register-v1', PREF_KEY = 'marks-register-prefs';
+
+const st = {sessions:{}, view:'home', cur:null, mode:'list', sort:'list', q:'', oneIdx:0, buf:'', ready:false, backend:null, sync:'', editOpen:false,
+  sum:{from:'',to:'',q:''}, cls:'dbms'};
+let db = null;
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function fmtDate(iso,long){if(!iso)return'';const [y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('en-IN',long?{weekday:'long',day:'numeric',month:'long',year:'numeric'}:{day:'numeric',month:'short'})}
+const fmt = v => v==null ? '' : String(v);
+function prefs(){try{return JSON.parse(localStorage.getItem(PREF_KEY))||{}}catch(e){return{}}}
+function setPrefs(p){try{localStorage.setItem(PREF_KEY,JSON.stringify({...prefs(),...p}))}catch(e){}}
+
+let toastT;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
+function setSync(s){st.sync=s;const el=$('#sync');if(!el)return;el.dataset.s=s;
+  el.textContent = s==='saving'?'Saving…':s==='saved'?(st.backend==='local'?'Saved on this device':'All changes saved'):s==='error'?'Not saved — check connection':''}
+
+/* ---------- storage ---------- */
+function loadLocal(){try{const d=JSON.parse(localStorage.getItem(LOCAL_KEY));if(d&&typeof d==='object')st.sessions=d}catch(e){}}
+function saveLocal(){try{localStorage.setItem(LOCAL_KEY,JSON.stringify(st.sessions))}catch(e){toast('Could not save on this device.')}}
+const dirty=new Set(), timers={}, inflight={}, again={};
+function touch(id,delay=400){dirty.add(id);clearTimeout(timers[id]);setSync('saving');timers[id]=setTimeout(()=>{timers[id]=null;flush(id)},delay)}
+async function flush(id){
+  if(st.backend!=='cloud'){saveLocal();dirty.delete(id);setSync('saved');return}
+  if(inflight[id]){again[id]=true;return}
+  const s=st.sessions[id]; if(!s){dirty.delete(id);return}
+  inflight[id]=true;
+  const body={cls:clsOf(s),date:s.date,title:s.title,max:s.max,marks:{...s.marks},labOn:!!s.labOn,lab:{...(s.lab||{})},createdAt:s.createdAt||Date.now()};
+  try{ await db.collection('sessions').doc(id).set(body) }
+  catch(e){ inflight[id]=false; setSync('error');
+    if(e&&e.code==='quota_exceeded') toast('Storage is full. Delete some old assessments.');
+    else if(e&&e.code==='invalid_argument') toast('You can view this register but not change it.');
+    else setTimeout(()=>touch(id,0),2500);
+    return }
+  inflight[id]=false;
+  if(again[id]){again[id]=false;return flush(id)}
+  if(!timers[id]){dirty.delete(id);if(!dirty.size)setSync('saved')}
+}
+async function removeSession(id){
+  delete st.sessions[id]; dirty.delete(id); clearTimeout(timers[id]);
+  if(st.backend==='cloud'){try{await db.collection('sessions').doc(id).delete()}catch(e){toast('Could not delete. Try again.')}}
+  else saveLocal();
+}
+function onSnap(snap){
+  const next={};
+  snap.docs.forEach(d=>{const x=d.data()||{};
+    next[d.id] = (dirty.has(d.id)&&st.sessions[d.id]) ? st.sessions[d.id] : {id:d.id,cls:x.cls||'dbms',date:x.date,title:x.title,max:x.max,createdAt:x.createdAt,marks:{...(x.marks||{})},labOn:!!x.labOn,lab:{...(x.lab||{})}}});
+  for(const id of dirty) if(!next[id]&&st.sessions[id]) next[id]=st.sessions[id];
+  const first=!st.ready; st.sessions=next; st.ready=true;
+  if(st.view==='mark'){
+    if(!st.sessions[st.cur]){st.view='home';render();toast('This assessment was deleted.');return}
+    if(first) render(); else refreshMark();
+  } else render();
+}
+window.addEventListener('beforeunload',e=>{if(dirty.size){e.preventDefault();e.returnValue=''}});
+
+/* ---------- helpers ---------- */
+function statsOf(s){
+  let marked=0,absent=0,sum=0,n=0,hi=-Infinity,lo=Infinity;
+  for(const st_ of STUDENTS){const v=s.marks[st_.roll]; if(v==null)continue; marked++;
+    if(v==='A'){absent++;continue} n++;sum+=v;hi=Math.max(hi,v);lo=Math.min(lo,v)}
+  const lab=s.labOn?STUDENTS.filter(x=>s.lab&&s.lab[x.roll]).length:null;
+  return {marked,absent,n,avg:n?sum/n:null,hi:n?hi:null,lo:n?lo:null,lab};
+}
+function ordered(){
+  let list=[...STUDENTS];
+  if(st.sort==='name') list.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(st.sort==='roll') list.sort((a,b)=>a.roll.localeCompare(b.roll));
+  return list;
+}
+function parseMark(v,max){
+  v=String(v).trim(); if(v==='')return{clear:true};
+  if(/^a(b|bs|bsent)?$/i.test(v))return{val:'A'};
+  const n=Number(v); if(!isFinite(n)||n<0||n>max)return{bad:true};
+  return{val:Math.round(n*100)/100};
+}
+const round1 = x => x==null?'—':(Math.round(x*10)/10).toString();
+function cur(){return st.sessions[st.cur]}
+function setMark(roll,val){const s=cur();if(!s)return;
+  if(val==null) delete s.marks[roll]; else s.marks[roll]=val;
+  touch(s.id); updateRow(roll); updateStats();
+}
+function setLab(roll,on){const s=cur();if(!s)return;s.lab=s.lab||{};
+  if(on) s.lab[roll]=true; else delete s.lab[roll];
+  touch(s.id); updateRow(roll); updateStats();
+}
+
+/* ---------- render ---------- */
+function render(){
+  if(!st.ready){$('#head').innerHTML='<div class="bar"><h1 class="grow">Marks register</h1></div>';return}
+  if(st.view==='mark'&&cur()) return renderMark();
+  if(st.view==='summary') return renderSummary();
+  st.view='home'; renderHome();
+}
+
+function renderHome(){
+  const p=prefs();
+  $('#head').innerHTML=`<div class="bar"><div class="grow"><h1>${esc(CLASSES[st.cls].name)}</h1><div class="muted" style="font-size:.9rem">${STUDENTS.length} students</div></div><span class="sync" id="sync"></span></div>
+    <div class="seg clsseg" role="group" aria-label="Choose lab" style="margin-top:10px">${Object.entries(CLASSES).map(([k,c])=>`<button data-cls="${k}" aria-pressed="${st.cls===k}">${esc(c.short)}</button>`).join('')}</div>`;
+  $$('[data-cls]').forEach(b=>b.onclick=()=>{useClass(b.dataset.cls);setPrefs({cls:st.cls});renderHome();scrollTo(0,0)});
+  setSync(st.sync);
+  const list=Object.values(st.sessions).filter(s=>clsOf(s)===st.cls).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||0)-(a.createdAt||0));
+  const titles=[...new Set(list.map(s=>s.title).filter(Boolean))].slice(0,20);
+  const groups={}; list.forEach(s=>{(groups[s.date]=groups[s.date]||[]).push(s)});
+  const groupHtml = list.length ? Object.keys(groups).map(d=>`<div class="day"><h3>${esc(fmtDate(d,true))}</h3>${groups[d].map(s=>{
+      const k=statsOf(s), pct=Math.round(k.marked/STUDENTS.length*100);
+      return `<button class="sess" data-open="${esc(s.id)}"><b>${esc(s.title||'Untitled')}</b><span class="muted num">out of ${esc(s.max)}</span>
+        <span class="meta num">${k.marked} of ${STUDENTS.length} marked${k.absent?`, ${k.absent} absent`:''}${k.avg!=null?`. Average ${round1(k.avg)}`:''}${k.lab!=null?`. Lab files ${k.lab}`:''}</span>
+        <span class="progress"><i style="width:${pct}%"></i></span></button>`}).join('')}</div>`).join('')
+    : `<div class="empty">No ${esc(CLASSES[st.cls].name)} assessments yet. Start one above and it will appear here.</div>`;
+  $('#app').innerHTML=`
+  <section class="card">
+    <h2>Start today's marking</h2>
+    <div class="formgrid">
+      <label class="f">Date<input type="date" id="nDate" value="${today()}"></label>
+      <label class="f wide">What are you marking?<input id="nTitle" list="titles" placeholder="Class test, viva, assignment…" value="${esc(p.title||'Class test')}"></label>
+      <label class="f">Out of<input id="nMax" inputmode="decimal" value="${esc(p.max??10)}"></label>
+    </div>
+    <label class="check"><input type="checkbox" id="nLab" ${p.labOn===false?'':'checked'}> Also check lab file submission</label>
+    <datalist id="titles">${titles.map(t=>`<option value="${esc(t)}">`).join('')}</datalist>
+    <button class="btn primary" id="create" style="width:100%">Start marking</button>
+  </section>
+  <section style="margin-top:28px">
+    <div class="bar"><h2 class="grow">Assessments</h2>${list.length?'<button class="btn" id="toSum">Summary and export</button>':''}</div>
+    ${groupHtml}
+  </section>`;
+  $('#create').onclick=createSession;
+  $('#nMax').onkeydown=e=>{if(e.key==='Enter')createSession()};
+  $$('[data-open]').forEach(b=>b.onclick=()=>openSession(b.dataset.open));
+  const ts=$('#toSum'); if(ts) ts.onclick=()=>{st.view='summary';render();scrollTo(0,0)};
+}
+
+function createSession(){
+  const date=$('#nDate').value||today(), title=$('#nTitle').value.trim()||'Class test', max=Number($('#nMax').value), labOn=$('#nLab').checked;
+  if(!isFinite(max)||max<=0){toast('Enter the maximum marks, e.g. 10.');$('#nMax').focus();return}
+  const id=date+'_'+Date.now().toString(36);
+  st.sessions[id]={id,cls:st.cls,date,title,max,marks:{},labOn,lab:{},createdAt:Date.now()};
+  setPrefs({title,max,labOn}); touch(id,0); openSession(id);
+}
+function openSession(id){if(st.sessions[id])useClass(clsOf(st.sessions[id]));st.cur=id;st.view='mark';st.q='';st.buf='';st.editOpen=false;st.mode=prefs().mode||'list';
+  st.oneIdx=firstUnmarked(); render(); scrollTo(0,0)}
+function firstUnmarked(){const s=cur();const o=ordered();const i=o.findIndex(x=>s&&s.marks[x.roll]==null);return i<0?0:i}
+
+function renderMark(){
+  const s=cur();
+  $('#head').innerHTML=`
+    <div class="bar">
+      <button class="btn ghost" id="back" aria-label="Back to all assessments">‹ All</button>
+      <div class="grow"><div class="sesstitle">${esc(s.title)}</div><div class="muted num" style="font-size:.88rem">${esc(CLASSES[clsOf(s)].short)}, ${esc(fmtDate(s.date,true))}, out of ${esc(s.max)}</div></div>
+      <span class="sync" id="sync"></span>
+    </div>
+    <div class="bar" style="margin-top:10px">
+      <div class="seg" role="group" aria-label="Marking style">
+        <button data-mode="list" aria-pressed="${st.mode==='list'}">Whole list</button>
+        <button data-mode="one" aria-pressed="${st.mode==='one'}">One by one</button>
+      </div>
+      <span class="grow"></span>
+      <span class="num" id="count" style="font-weight:700"></span>
+      <button class="btn" id="editBtn" aria-expanded="${st.editOpen}">Options</button>
+    </div>
+    <div class="progress"><i id="prog"></i></div>`;
+  setSync(st.sync);
+  $('#back').onclick=()=>{st.view='home';render();scrollTo(0,0)};
+  $$('[data-mode]').forEach(b=>b.onclick=()=>{st.mode=b.dataset.mode;setPrefs({mode:st.mode});st.buf='';if(st.mode==='one')st.oneIdx=firstUnmarked();renderMark()});
+  $('#editBtn').onclick=()=>{st.editOpen=!st.editOpen;$('#editBtn').setAttribute('aria-expanded',st.editOpen);$('#edit').classList.toggle('open',st.editOpen)};
+
+  const editHtml=`<section class="card edit ${st.editOpen?'open':''}" id="edit">
+    <div class="formgrid">
+      <label class="f">Date<input type="date" id="eDate" value="${esc(s.date)}"></label>
+      <label class="f wide">Title<input id="eTitle" value="${esc(s.title)}"></label>
+      <label class="f">Out of<input id="eMax" inputmode="decimal" value="${esc(s.max)}"></label>
+    </div>
+    <label class="check"><input type="checkbox" id="eLab" ${s.labOn?'checked':''}> Check lab file submission</label>
+    <div class="bar">
+      <button class="btn primary" id="eSave">Save details</button>
+      <button class="btn" id="eFill">Mark blanks absent</button>
+      <button class="btn" id="eCsv">Download CSV</button>
+      <span class="grow"></span>
+      <button class="btn danger" id="eDel">Delete</button>
+    </div></section>`;
+
+  const tools = st.mode==='list' ? `<div class="tools">
+      <input class="search" id="q" type="search" placeholder="Find by name or roll number" value="${esc(st.q)}" aria-label="Find student">
+      <select id="sort" aria-label="Order"><option value="list">Exam roll order</option><option value="roll">College roll</option><option value="name">Name A–Z</option></select>
+    </div>` : `<div class="tools"><select id="sort" aria-label="Order"><option value="list">Exam roll order</option><option value="roll">College roll</option><option value="name">Name A–Z</option></select></div>`;
+
+  $('#app').innerHTML = editHtml + tools + (st.mode==='list' ? listHtml() : '<div id="onebox"></div>') + `<div class="stats num" id="stats"></div>`;
+  $('#sort').value=st.sort;
+  $('#sort').onchange=e=>{st.sort=e.target.value;if(st.mode==='one')st.oneIdx=firstUnmarked();renderMark()};
+
+  $('#eSave').onclick=()=>{
+    const max=Number($('#eMax').value), title=$('#eTitle').value.trim()||'Untitled', date=$('#eDate').value||s.date;
+    if(!isFinite(max)||max<=0){toast('Enter a valid maximum.');return}
+    const over=Object.values(s.marks).some(v=>v!=='A'&&v>max);
+    if(over){toast(`Some marks are above ${max}. Fix those first.`);return}
+    Object.assign(s,{max,title,date,labOn:$('#eLab').checked}); s.lab=s.lab||{}; touch(s.id,0); st.editOpen=false; renderMark(); toast('Details saved');
+  };
+  $('#eFill').onclick=()=>{let c=0;STUDENTS.forEach(x=>{if(s.marks[x.roll]==null){s.marks[x.roll]='A';c++}});
+    if(!c){toast('Everyone already has a mark.');return} touch(s.id,0); renderMark(); toast(`${c} marked absent`)};
+  $('#eCsv').onclick=()=>{
+    const rows=[['Sl','Name','College Roll','Exam Roll',`${s.title} (${s.date}) /${s.max}`,...(s.labOn?['Lab file']:[])]].concat(STUDENTS.map((x,i)=>[i+1,x.name,x.roll,x.exam,fmt(s.marks[x.roll]),...(s.labOn?[s.lab&&s.lab[x.roll]?'Submitted':'Not submitted']:[])]));
+    download(`${CLASSES[clsOf(s)].short} ${s.date} ${s.title}.csv`.replace(/[\\/:*?"<>|]/g,'-'),toCsv(rows));
+  };
+  armDelete($('#eDel'),async()=>{const id=s.id;st.view='home';await removeSession(id);render();toast('Assessment deleted')});
+
+  if(st.mode==='list') wireList(); else renderOne();
+  updateStats();
+}
+
+function listHtml(){
+  const s=cur(), q=st.q.trim().toLowerCase();
+  const list=ordered().filter(x=>!q||x.name.toLowerCase().includes(q)||x.roll.includes(q)||x.exam.includes(q));
+  if(!list.length) return `<div class="empty">No student matches “${esc(st.q)}”.</div>`;
+  return `<div class="rows" id="rows">${list.map(x=>{const v=s.marks[x.roll];
+    const lab=!!(s.lab&&s.lab[x.roll]);
+    return `<div class="row${s.labOn?' haslab':''}" data-roll="${x.roll}" data-state="${v==null?'empty':v==='A'?'absent':'done'}">
+      <span class="n num">${x.i+1}</span>
+      <span class="who"><span class="nm">${esc(x.name)}</span><span class="rl num">${x.roll}  ·  ${x.exam}</span></span>
+      ${s.labOn?`<button class="lab" aria-pressed="${lab}" aria-label="Lab file submitted by ${esc(x.name)}">${lab?'✓ File':'File'}</button>`:''}
+      <button class="abs" aria-pressed="${v==='A'}" aria-label="Mark ${esc(x.name)} absent" title="Absent">A</button>
+      <input class="mk" inputmode="decimal" autocomplete="off" value="${esc(fmt(v))}" aria-label="Marks for ${esc(x.name)}" placeholder="–">
+    </div>`}).join('')}</div>
+    <div class="hint">Type a mark and press Enter to jump to the next student. Type A for absent.${s.labOn?' Tap File when the lab file is submitted.':''}</div>`;
+}
+function wireList(){
+  const q=$('#q');
+  q.oninput=()=>{st.q=q.value;const box=$('#rows')||$('.empty');const html=listHtml();const tmp=document.createElement('div');tmp.innerHTML=html;
+    $$('.rows,.empty,.hint',$('#app')).forEach(n=>n.remove());$('#stats').before(...tmp.childNodes);wireRows()};
+  wireRows();
+}
+function wireRows(){
+  const s=cur();
+  $$('.row').forEach(row=>{
+    const roll=row.dataset.roll, inp=$('.mk',row), ab=$('.abs',row);
+    inp.onfocus=()=>inp.select();
+    inp.oninput=()=>{const r=parseMark(inp.value,s.max);
+      if(r.bad){row.classList.add('bad');return} row.classList.remove('bad');
+      setMark(roll, r.clear?null:r.val)};
+    inp.onblur=()=>{if(row.classList.contains('bad')){toast(`Marks must be between 0 and ${s.max}.`)}};
+    inp.onkeydown=e=>{
+      if(e.key==='Enter'||e.key==='ArrowDown'){e.preventDefault();move(row,1)}
+      else if(e.key==='ArrowUp'){e.preventDefault();move(row,-1)}
+    };
+    const lb=$('.lab',row); if(lb) lb.onclick=()=>setLab(roll,!(s.lab&&s.lab[roll]));
+    ab.onclick=()=>{const v=s.marks[roll];row.classList.remove('bad');setMark(roll,v==='A'?null:'A');if(v!=='A')move(row,1,true)};
+  });
+}
+function move(row,dir,soft){const rows=$$('.row');const i=rows.indexOf(row);const t=rows[i+dir];if(t){$('.mk',t).focus();if(soft)t.scrollIntoView({block:'nearest'})}}
+function updateRow(roll){
+  const s=cur(); if(st.mode!=='list'||!s)return;
+  const row=$(`.row[data-roll="${roll}"]`); if(!row)return;
+  const v=s.marks[roll], inp=$('.mk',row);
+  row.dataset.state = v==null?'empty':v==='A'?'absent':'done';
+  $('.abs',row).setAttribute('aria-pressed',v==='A');
+  const lb=$('.lab',row); if(lb){const on=!!(s.lab&&s.lab[roll]);lb.setAttribute('aria-pressed',on);lb.textContent=on?'✓ File':'File'}
+  if(document.activeElement!==inp){inp.value=fmt(v);row.classList.remove('bad')}
+  else if(v==='A') inp.value='A';
+}
+function updateStats(){
+  const s=cur(); if(!s)return; const k=statsOf(s);
+  const c=$('#count'); if(c) c.textContent=`${k.marked} / ${STUDENTS.length}`;
+  const p=$('#prog'); if(p) p.style.width=(k.marked/STUDENTS.length*100)+'%';
+  const el=$('#stats'); if(el) el.innerHTML=`<span>Marked <b>${k.marked}</b></span><span>Left <b>${STUDENTS.length-k.marked}</b></span><span>Absent <b>${k.absent}</b></span><span>Average <b>${round1(k.avg)}</b></span><span>Highest <b>${k.hi??'—'}</b></span><span>Lowest <b>${k.lo??'—'}</b></span>${k.lab!=null?`<span>Lab files <b>${k.lab} / ${STUDENTS.length}</b></span>`:''}`;
+}
+function refreshMark(){
+  const s=cur(); if(!s)return;
+  if(st.mode==='list') STUDENTS.forEach(x=>updateRow(x.roll)); else renderOne();
+  updateStats();
+}
+
+/* one by one */
+function renderOne(){
+  const box=$('#onebox'); if(!box)return;
+  const s=cur(), list=ordered(); st.oneIdx=Math.max(0,Math.min(st.oneIdx,list.length-1));
+  const x=list[st.oneIdx], v=s.marks[x.roll];
+  const chips = Number.isInteger(s.max)&&s.max<=20;
+  const shown = st.buf!=='' ? `<span class="typing">${esc(st.buf)}</span>` : v==null ? '<span class="muted">–</span>' : v==='A'?'Absent':esc(v);
+  const curCls = st.buf!==''?'typing':v==='A'?'absent':'';
+  const pad = chips
+    ? `<div class="pad">${Array.from({length:s.max+1},(_,n)=>`<button data-v="${n}" aria-pressed="${v===n}">${n}</button>`).join('')}</div>`
+    : `<div class="pad keys">${['1','2','3','4','5','6','7','8','9','.','0','⌫'].map(k=>`<button data-k="${k}">${k}</button>`).join('')}</div>
+       <button class="btn primary" id="commit" style="width:100%;max-width:320px;margin:0 auto 10px;display:block">Save mark</button>`;
+  box.innerHTML=`<div class="one">
+    <div class="pos num">${st.oneIdx+1} of ${list.length}</div>
+    <div class="bn">${esc(x.name)}</div>
+    <div class="muted num">College roll ${x.roll}, exam roll ${x.exam}</div>
+    <div class="cur ${curCls}">${shown}${v!=='A'&&(v!=null||st.buf!=='')?` <small>/ ${esc(s.max)}</small>`:''}</div>
+    ${s.labOn?`<button class="labbig" id="oLab" aria-pressed="${!!(s.lab&&s.lab[x.roll])}"><span class="box">${s.lab&&s.lab[x.roll]?'✓':''}</span>Lab file submitted</button>`:''}
+    ${pad}
+    <div class="onenav">
+      <button class="btn" id="oPrev" ${st.oneIdx===0?'disabled':''}>‹ Previous</button>
+      <button class="btn" id="oAbs" style="color:var(--absent);font-weight:700">Absent</button>
+      <button class="btn" id="oClr">Clear</button>
+      <button class="btn" id="oNext" ${st.oneIdx===list.length-1?'disabled':''}>Next ›</button>
+    </div>
+    <div class="dots" aria-label="Jump to student">${list.map((y,i)=>{const w=s.marks[y.roll];return `<button data-i="${i}" class="${i===st.oneIdx?'at':''}" data-state="${w==null?'empty':w==='A'?'absent':'done'}" title="${esc(y.name)}" aria-label="${esc(y.name)}"></button>`}).join('')}</div>
+    <div class="hint">${s.labOn?'Tick the lab file first, then tap the mark. ':''}On a keyboard: type the mark and press Enter, A for absent, F for lab file, arrow keys to move.</div>
+  </div>`;
+  $$('[data-v]',box).forEach(b=>b.onclick=()=>commitOne(Number(b.dataset.v)));
+  $$('[data-k]',box).forEach(b=>b.onclick=()=>typeKey(b.dataset.k==='⌫'?'Backspace':b.dataset.k));
+  const cm=$('#commit',box); if(cm) cm.onclick=()=>typeKey('Enter');
+  const ol=$('#oLab',box); if(ol) ol.onclick=()=>{setLab(x.roll,!(s.lab&&s.lab[x.roll]));renderOne()};
+  $('#oPrev').onclick=()=>goOne(-1); $('#oNext').onclick=()=>goOne(1);
+  $('#oAbs').onclick=()=>commitOne('A');
+  $('#oClr').onclick=()=>{st.buf='';setMark(x.roll,null);renderOne()};
+  $$('.dots button',box).forEach(b=>b.onclick=()=>{st.oneIdx=Number(b.dataset.i);st.buf='';renderOne()});
+}
+function goOne(d){st.buf='';st.oneIdx+=d;renderOne()}
+let advT;
+function commitOne(val){
+  const s=cur(), list=ordered(), x=list[st.oneIdx]; st.buf='';
+  setMark(x.roll,val); renderOne();
+  clearTimeout(advT); advT=setTimeout(()=>{if(st.oneIdx<list.length-1){st.oneIdx++;renderOne()}else toast('That was the last student.')},180);
+}
+function typeKey(k){
+  const s=cur();
+  if(k==='Backspace'){st.buf=st.buf.slice(0,-1);renderOne();return}
+  if(k==='Enter'){if(st.buf==='')return;const r=parseMark(st.buf,s.max);
+    if(r.bad||r.clear){toast(`Marks must be between 0 and ${s.max}.`);st.buf='';renderOne();return} commitOne(r.val);return}
+  if(/^[0-9.]$/.test(k)&&st.buf.length<6){st.buf+=k;renderOne()}
+}
+document.addEventListener('keydown',e=>{
+  if(st.view!=='mark'||st.mode!=='one')return;
+  const tag=(e.target.tagName||'').toLowerCase(); if(tag==='input'||tag==='select'||tag==='textarea')return;
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(/^[0-9.]$/.test(e.key)){e.preventDefault();typeKey(e.key)}
+  else if(e.key==='Backspace'){e.preventDefault();typeKey('Backspace')}
+  else if(e.key==='Enter'){if(st.buf!==''){e.preventDefault();typeKey('Enter')}}
+  else if(e.key==='a'||e.key==='A'){e.preventDefault();commitOne('A')}
+  else if((e.key==='f'||e.key==='F')&&cur()&&cur().labOn){e.preventDefault();const x=ordered()[st.oneIdx];setLab(x.roll,!(cur().lab&&cur().lab[x.roll]));renderOne()}
+  else if(e.key==='ArrowRight'){e.preventDefault();if(st.oneIdx<STUDENTS.length-1)goOne(1)}
+  else if(e.key==='ArrowLeft'){e.preventDefault();if(st.oneIdx>0)goOne(-1)}
+});
+
+function armDelete(btn,fn){
+  let armed=false,t;
+  btn.onclick=()=>{if(armed){clearTimeout(t);fn();return}
+    armed=true;btn.classList.add('armed');btn.textContent='Tap again to delete';
+    t=setTimeout(()=>{armed=false;btn.classList.remove('armed');btn.textContent='Delete'},3500)};
+}
+
+/* ---------- summary ---------- */
+function filteredSessions(){
+  const {from,to,q}=st.sum;
+  return Object.values(st.sessions).filter(s=>clsOf(s)===st.cls&&(!from||s.date>=from)&&(!to||s.date<=to)&&(!q||(s.title||'').toLowerCase().includes(q.toLowerCase())))
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.createdAt||0)-(b.createdAt||0));
+}
+function summaryRows(list){
+  const labSess=list.filter(s=>s.labOn);
+  return STUDENTS.map(x=>{let tot=0,out=0,ab=0;
+    const cells=list.map(s=>{const v=s.marks[x.roll];if(v==='A')ab++;else if(v!=null){tot+=v;out+=Number(s.max)}return v});
+    const labs=list.map(s=>s.labOn?!!(s.lab&&s.lab[x.roll]):null);
+    const labDone=labSess.filter(s=>s.lab&&s.lab[x.roll]).length;
+    return {x,cells,labs,labDone,labTotal:labSess.length,tot:Math.round(tot*100)/100,out,ab,pct:out?Math.round(tot/out*1000)/10:null}});
+}
+function renderSummary(){
+  $('#head').innerHTML=`<div class="bar"><button class="btn ghost" id="back">‹ All</button><div class="grow"><h1 style="font-size:1.4rem">Summary</h1><div class="muted" style="font-size:.88rem">${esc(CLASSES[st.cls].name)}</div></div><span class="sync" id="sync"></span></div>`;
+  setSync(st.sync);
+  $('#back').onclick=()=>{st.view='home';render();scrollTo(0,0)};
+  const list=filteredSessions(), rows=summaryRows(list), hasLab=list.some(s=>s.labOn);
+  $('#app').innerHTML=`
+    <div class="sumfilters">
+      <label class="f">From<input type="date" id="sFrom" value="${esc(st.sum.from)}"></label>
+      <label class="f">To<input type="date" id="sTo" value="${esc(st.sum.to)}"></label>
+      <label class="f wide">Only titles containing<input id="sQ" value="${esc(st.sum.q)}" placeholder="e.g. viva"></label>
+    </div>
+    <div class="bar" style="margin-top:12px">
+      <span class="grow muted">${list.length} assessment${list.length===1?'':'s'} included${hasLab?'. ✓F means lab file submitted, ✗F not submitted':''}</span>
+      <button class="btn" id="sCopy">Copy table</button>
+      <button class="btn primary" id="sCsv">Download CSV</button>
+    </div>
+    ${list.length?`<div class="tablebox"><table>
+      <thead><tr><th>Sl</th><th class="l">Name</th><th>College roll</th>${list.map(s=>`<th>${esc(fmtDate(s.date))}<small>${esc(s.title)} /${esc(s.max)}</small></th>`).join('')}<th>Total</th><th>Out of</th><th>%</th><th>Absent</th>${hasLab?'<th>Lab files</th>':''}</tr></thead>
+      <tbody>${rows.map(r=>`<tr><td class="muted">${r.x.i+1}</td><td class="l">${esc(r.x.name)}</td><td>${r.x.roll}</td>${r.cells.map((v,j)=>`<td class="${v==='A'?'a':''}">${v==null?'<span class="muted">–</span>':esc(v)}${r.labs[j]===true?'<span class="lf" title="Lab file submitted">✓F</span>':r.labs[j]===false?'<span class="lf no" title="Lab file not submitted">✗F</span>':''}</td>`).join('')}<td class="t">${r.tot}</td><td>${r.out}</td><td>${r.pct??'—'}</td><td>${r.ab||''}</td>${hasLab?`<td>${r.labDone} / ${r.labTotal}</td>`:''}</tr>`).join('')}</tbody>
+    </table></div>`:`<div class="empty">No assessments in this range.</div>`}`;
+  const upd=()=>{st.sum={from:$('#sFrom').value,to:$('#sTo').value,q:$('#sQ').value};const a=document.activeElement&&document.activeElement.id;const pos=a==='sQ'?$('#sQ').selectionStart:null;renderSummary();if(a){const el=$('#'+a);el.focus();if(pos!=null)el.setSelectionRange(pos,pos)}};
+  $('#sFrom').onchange=upd; $('#sTo').onchange=upd; $('#sQ').oninput=upd;
+  const table=()=>[['Sl','Name','College Roll','Exam Roll',...list.flatMap(s=>s.labOn?[`${s.date} ${s.title} /${s.max}`,`${s.date} ${s.title} lab file`]:[`${s.date} ${s.title} /${s.max}`]),'Total','Out of','%','Absent',...(hasLab?['Lab files submitted']:[])]]
+    .concat(rows.map(r=>[r.x.i+1,r.x.name,r.x.roll,r.x.exam,...r.cells.flatMap((v,j)=>r.labs[j]===null?[fmt(v)]:[fmt(v),r.labs[j]?'Yes':'No']),r.tot,r.out,r.pct??'',r.ab,...(hasLab?[`${r.labDone}/${r.labTotal}`]:[])]));
+  $('#sCsv').onclick=()=>{if(!list.length){toast('Nothing to export yet.');return}download(`${CLASSES[st.cls].short} summary ${today()}.csv`,toCsv(table()))};
+  $('#sCopy').onclick=()=>{if(!list.length){toast('Nothing to copy yet.');return}
+    const tsv=table().map(r=>r.join('\t')).join('\n');
+    (navigator.clipboard?navigator.clipboard.writeText(tsv):Promise.reject()).then(()=>toast('Copied. Paste into Excel or Google Sheets.')).catch(()=>toast('Copy is blocked here. Use Download CSV.'))};
+}
+
+/* ---------- export ---------- */
+function toCsv(rows){return '\ufeff'+rows.map(r=>r.map(c=>{c=String(c??'');return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(',')).join('\r\n')}
+async function download(filename,text){
+  let dl=null; try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(e){}
+  if(!dl){
+    try{const url=URL.createObjectURL(new Blob([text],{type:'text/csv;charset=utf-8'}));
+      const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){toast('Could not download. Use Copy table instead.')}
+    return}
+  try{await dl.save({filename,data:text})}catch(e){if(e&&e.code!=='declined')toast('Could not save the file'+(e&&e.message?': '+e.message:'.'))}
+}
+
+/* ---------- start ---------- */
+(async()=>{
+  useClass(prefs().cls||'dbms');
+  render();
+  let d=null;
+  d=null;
+  if(d){
+    db=d; st.backend='cloud';
+    db.collection('sessions').limit(1000).onSnapshot(onSnap, e=>{setSync('error');toast('Live sync stopped. Reload the page to reconnect.')});
+  } else {
+    st.backend='local'; loadLocal(); st.ready=true; render();
+  }
+})();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(()=>{})}
+</script>
+</body>
+</html>
